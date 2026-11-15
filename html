@@ -1,0 +1,460 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ทธการล่าแต้มปราบเซียน ท้าเหยียบเซียนเลขสะท้านจักรวาล</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --red:#ff294b;--red2:#a5002b;--purple:#a66bff;
+ --gold:#ffd36b;--bg:#08080e;--panel:#15131d;
+ --muted:#a09bab;--line:#ffffff20;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;background:
+ radial-gradient(ellipse at 50% -20%,#571426 0%,transparent 48%),
+ radial-gradient(ellipse at 100% 80%,#28113e 0%,transparent 40%),var(--bg);
+ color:#fff;font-family:Prompt,sans-serif;min-height:100vh;
+}
+body:before{
+ content:"";position:fixed;inset:0;pointer-events:none;opacity:.10;
+ background-image:linear-gradient(#fff 1px,transparent 1px),
+ linear-gradient(90deg,#fff 1px,transparent 1px);
+ background-size:38px 38px;
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{max-width:1450px;margin:auto;padding:22px;position:relative}
+.top{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:15px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px
+}
+.logo{font:900 25px Orbitron;letter-spacing:3px}
+.logo span{color:var(--red);text-shadow:0 0 20px var(--red)}
+.tag{font-size:9px;letter-spacing:4px;color:#aaa;margin-top:5px}
+.live{
+ border:1px solid #ff294b88;color:#ff6178;padding:9px 14px;
+ font:700 10px Orbitron;letter-spacing:1px;
+ box-shadow:0 0 20px #ff294b22
+}
+.hero{text-align:center;padding:34px 10px 23px}
+.hero h1{
+ font:900 clamp(30px,6vw,64px) Orbitron;margin:0;letter-spacing:3px;
+ text-shadow:0 0 15px #ff294b,0 0 45px #a5002b
+}
+.hero h1 span{color:var(--red)}
+.hero p{font-size:11px;letter-spacing:3px;color:#aaa}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin:20px 0 30px}
+.team{
+ background:linear-gradient(145deg,#211b2b,#111019);
+ border:1px solid #ffffff25;border-radius:12px;padding:16px;
+ text-align:center;box-shadow:0 10px 30px #0008
+}
+.team-name{
+ background:transparent;border:0;color:#fff;text-align:center;
+ font-weight:700;width:100%;outline:none;font-size:14px
+}
+.score{font:900 30px Orbitron;color:var(--gold);margin:10px 0;text-shadow:0 0 15px #ffd36b55}
+.team-tools{display:flex;justify-content:center;gap:5px;flex-wrap:wrap}
+.mini{
+ background:#ffffff10;border:1px solid #ffffff25;color:#ddd;
+ padding:6px 9px;border-radius:5px;font-size:10px
+}
+.board-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:25px 0 13px}
+.board-head h2{font:700 15px Orbitron;letter-spacing:2px}
+.board-head span{font-size:11px;color:#999}
+.board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.category{
+ min-height:82px;display:flex;align-items:center;justify-content:center;
+ text-align:center;padding:8px 5px;border-radius:8px;
+ background:linear-gradient(140deg,#63172b,#251326);
+ border:1px solid #ff294b88;box-shadow:inset 0 0 25px #ff294b18;
+ font-weight:700;font-size:13px
+}
+.cell{
+ min-height:92px;border-radius:8px;border:1px solid #ffffff27;
+ color:var(--gold);font:900 25px Orbitron;
+ background:linear-gradient(145deg,#211d2d,#100f18);
+ transition:.2s
+}
+.cell:not(:disabled):hover{
+ transform:translateY(-4px);border-color:var(--gold);
+ box-shadow:0 0 25px #ffd36b44
+}
+.cell:disabled{opacity:.2;cursor:not-allowed;color:#666}
+.cell.used{background:#14121a}
+.note{text-align:center;color:#777;font-size:10px;margin:20px 0 35px}
+.action{
+ border:0;border-radius:7px;padding:12px 19px;
+ background:linear-gradient(110deg,#a9002a,#ff294b);
+ color:white;font-weight:700;box-shadow:0 0 20px #ff294b44
+}
+.gold{
+ border:0;border-radius:7px;padding:12px 19px;
+ background:linear-gradient(110deg,#a56a0a,#ffd36b);
+ color:#20130b;font-weight:700
+}
+.ghost{
+ border:1px solid #ffffff35;border-radius:7px;padding:11px 16px;
+ background:#ffffff0c;color:#fff
+}
+.modal{
+ display:none;position:fixed;inset:0;z-index:10;
+ background:#030207ed;backdrop-filter:blur(12px);
+ align-items:center;justify-content:center;padding:14px
+}
+.modal.show{display:flex}
+.dialog{
+ width:min(800px,100%);max-height:95vh;overflow:auto;
+ padding:clamp(18px,4vw,35px);
+ border-radius:16px;border:1px solid #ff294b99;
+ background:linear-gradient(145deg,#251522,#0d0c14);
+ box-shadow:0 0 70px #ff294b30,0 0 120px #a66bff18
+}
+.dialog-top{display:flex;justify-content:space-between;align-items:center;color:var(--red);font:700 12px Orbitron;letter-spacing:2px}
+.close{border:0;background:none;color:#aaa;font-size:27px}
+.points{text-align:center;color:var(--gold);font:700 13px Orbitron;margin-top:20px}
+.qtext{text-align:center;font-size:clamp(20px,4vw,30px);font-weight:600;line-height:1.65;margin:25px 0}
+.math{font-size:clamp(17px,3vw,23px);color:#fff}
+.answer{
+ display:none;background:#ffd36b10;border:1px solid #ffd36b66;
+ padding:18px;border-radius:10px;margin:18px 0;text-align:center
+}
+.answer.show{display:block}
+.answer-label{font:700 10px Orbitron;letter-spacing:3px;color:var(--gold);margin-bottom:8px}
+.answer-text{font-size:20px;color:var(--gold);font-weight:600}
+.solution{color:#ddd;font-size:13px;line-height:1.9;margin-top:12px;white-space:pre-line}
+.label{text-align:center;color:#aaa;font-size:12px;margin:20px 0 10px}
+.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.pick{
+ border:1px solid #ffffff35;background:#ffffff0c;color:white;
+ border-radius:7px;padding:13px 5px;font-weight:600
+}
+.pick small{display:block;font-size:10px;color:#aaa;margin-top:5px}
+.pick:disabled{opacity:.2;cursor:not-allowed}
+.pick.selected{border-color:var(--gold);background:#ffd36b20}
+.wrong{
+ display:none;text-align:center;color:#ff8392;
+ border:1px solid #ff294b66;background:#ff294b12;
+ padding:13px;border-radius:8px;margin:14px 0;font-size:13px
+}
+.wrong.show{display:block}
+.controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:15px 0}
+.result{display:none;text-align:center;padding:15px}
+.result.show{display:block}
+.result h3{color:var(--gold)}
+.editor{
+ margin-top:30px;background:#14121b;border:1px solid #ffffff22;
+ padding:18px;border-radius:10px
+}
+.editor h3{font:700 13px Orbitron;color:var(--purple)}
+.editor details{border-top:1px solid #ffffff20;padding:12px 0}
+.editor summary{cursor:pointer;font-size:13px}
+.editor input,.editor textarea{
+ width:100%;background:#09090f;color:white;border:1px solid #ffffff30;
+ border-radius:5px;padding:9px;margin:6px 0
+}
+.editor textarea{min-height:65px}
+.editgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.winner{
+ display:none;text-align:center;padding:28px;border:1px solid var(--gold);
+ background:#ffd36b0d;border-radius:12px;margin:25px 0
+}
+.winner.show{display:block}
+.winner h2{font:900 24px Orbitron;color:var(--gold)}
+@media(max-width:650px){
+ .app{padding:12px}
+ .team-grid{gap:6px}
+ .team{padding:11px 4px}
+ .team-name{font-size:11px}
+ .score{font-size:21px}
+ .board{gap:5px}
+ .category{font-size:10px;min-height:75px;padding:4px 2px}
+ .cell{min-height:68px;font-size:17px}
+ .picks{gap:5px}
+ .pick{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+ <header class="top">
+  <div>
+   <div class="logo">LAST <span>STAND</span></div>
+   <div class="tag">MATH APOCALYPSE · SURVIVAL CHALLENGE</div>
+  </div>
+  <div class="live">● SURVIVAL MODE ACTIVE</div>
+ </header>
+
+ <section class="hero">
+  <h1>THE LAST <span>STAND</span></h1>
+  <p>THINK FAST · SOLVE THE SEQUENCE · SURVIVE</p>
+ </section>
+
+ <section class="team-grid" id="teams"></section>
+
+ <div class="board-head">
+  <h2>MISSION BOARD</h2>
+  <span>เลือกหมวดและคะแนนเพื่อเริ่มภารกิจ</span>
+ </div>
+ <section class="board" id="board"></section>
+
+ <div class="winner" id="winner">
+  <h2>THE LAST SURVIVOR</h2>
+  <div id="winnerName" style="font-size:24px;margin:15px"></div>
+  <button class="action" onclick="resetGame()">เริ่มเกมใหม่</button>
+ </div>
+
+ <div class="note">NO TIMER · 3 TEAMS · ONE LAST SURVIVOR</div>
+
+ <section class="editor">
+  <h3>GAME CONTROL / ตั้งค่าเกม</h3>
+  <p style="font-size:11px;color:#999">แก้ไขชื่อทีม คะแนน หมวด คำถาม และเฉลยได้</p>
+  <div id="editors"></div>
+  <button class="ghost" onclick="resetGame()">รีเซ็ตช่องคำถาม</button>
+ </section>
+</div>
+
+<div class="modal" id="modal">
+ <div class="dialog">
+  <div class="dialog-top">
+   <span id="modalCategory">MISSION</span>
+   <button class="close" onclick="closeModal()">×</button>
+  </div>
+  <div class="points" id="modalPoints"></div>
+  <div class="qtext" id="questionText"></div>
+
+  <div class="answer" id="answerBox">
+   <div class="answer-label">CORRECT ANSWER</div>
+   <div class="answer-text" id="answerText"></div>
+   <div class="solution" id="solutionText"></div>
+  </div>
+
+  <div id="playArea">
+   <div class="label" id="pickLabel">เลือกทีมที่กำลังตอบคำถาม</div>
+   <div class="picks" id="picks"></div>
+
+   <div class="controls">
+    <button class="ghost" onclick="reveal()">เปิดเฉลย</button>
+   </div>
+
+   <div class="wrong" id="wrongPanel">
+    ตอบผิด! ทีมนี้หมดสิทธิ์ตอบข้อนี้แล้ว<br>
+    <b>ทีมที่เหลือสามารถเลือกตอบต่อได้</b>
+   </div>
+
+   <div class="controls" id="judgeControls" style="display:none">
+    <button class="action" onclick="markWrong()">ตอบผิด</button>
+    <button class="gold" onclick="markCorrect()">ตอบถูก</button>
+   </div>
+
+   <div class="controls" id="endControls" style="display:none">
+    <button class="ghost" onclick="endQuestion()">ไม่มีทีมตอบถูก / จบข้อนี้</button>
+   </div>
+  </div>
+
+  <div class="result" id="result">
+   <h3 id="resultText"></h3>
+   <button class="action" onclick="closeModal()">กลับกระดานเกม</button>
+  </div>
+ </div>
+</div>
+
+<script>
+const categories=[
+ "ลำดับเลขคณิต",
+ "พจน์ทั่วไปเลขคณิต",
+ "ลำดับเรขาคณิต",
+ "พจน์ทั่วไปเรขาคณิต",
+ "โจทย์ปัญหา"
+];
+const scores=[100,200,300,400,500];
+
+let teams=[
+ {name:"TEAM 01",score:0},
+ {name:"TEAM 02",score:0},
+ {name:"TEAM 03",score:0}
+];
+
+// แต่ละข้อประกอบด้วย [โจทย์, คำตอบ, วิธีคิด]
+let questions=[
+[
+ ["ลำดับ 3, 7, 11, 15, ... จงหาผลต่างร่วม d","d = 4","นำพจน์ที่ 2 ลบพจน์ที่ 1\n7 - 3 = 4"],
+ ["ลำดับ 12, 9, 6, 3, ... จงหาผลต่างร่วม d","d = -3","9 - 12 = -3"],
+ ["ถ้า a₁ = 5 และ a₂ = 13 จงหา d","d = 8","d = a₂ - a₁ = 13 - 5 = 8"],
+ ["ถ้า a₄ = 17 และ a₉ = 32 จงหา d","d = 3","a₉ = a₄ + (9-4)d\n32 = 17 + 5d\n15 = 5d ดังนั้น d = 3"],
+ ["ถ้า a₇ = 5 และ a₁₂ = 10 จงหาผลต่างร่วม d","d = 1","a₁₂ = a₇ + (12-7)d\n10 = 5 + 5d\n5d = 5 ดังนั้น d = 1"]
+],
+[
+ ["ลำดับ 2, 5, 8, 11, ... จงเขียนพจน์ทั่วไป","aₙ = 3n - 1","aₙ = a₁ + (n-1)d\n= 2 + (n-1)3\n= 3n - 1"],
+ ["ถ้า a₁ = 4 และ d = 5 จงหาพจน์ทั่วไป","aₙ = 5n - 1","aₙ = 4 + (n-1)5\n= 4 + 5n - 5\n= 5n - 1"],
+ ["ถ้า a₃ = 12 และ a₈ = 27 จงหาพจน์ทั่วไป","aₙ = 3n + 3","d = (27-12)/(8-3) = 3\na₁ = 12 - 2(3) = 6\naₙ = 6 + (n-1)3 = 3n + 3"],
+ ["ถ้า a₅ = 18 และ d = 4 จงหา a₁₀","a₁₀ = 38","a₁₀ = a₅ + (10-5)d\n= 18 + 5(4) = 38"],
+ ["ถ้า a₇ = 5 และ a₁₂ = 10 จงหาพจน์ที่ 100","a₁₀₀ = 98","d = (10-5)/(12-7) = 1\na₁₀₀ = a₇ + (100-7)d\n= 5 + 93 = 98"]
+],
+[
+ ["ลำดับ 2, 6, 18, 54, ... จงหาอัตราส่วนร่วม r","r = 3","r = 6/2 = 3"],
+ ["ลำดับ 81, 27, 9, 3, ... จงหา r","r = 1/3","r = 27/81 = 1/3"],
+ ["ถ้า a₁ = 5 และ a₂ = 15 จงหา r","r = 3","r = a₂/a₁ = 15/5 = 3"],
+ ["ถ้า a₃ = 20 และ a₅ = 180 จงหา r²","r² = 9","a₅ = a₃r²\n180 = 20r²\nr² = 9"],
+ ["ถ้า a₂ = 12 และ a₅ = 324 จงหาอัตราส่วนร่วม r","r = 3","a₅ = a₂r³\n324 = 12r³\nr³ = 27 ดังนั้น r = 3"]
+],
+[
+ ["ลำดับ 3, 6, 12, 24, ... จงเขียนพจน์ทั่วไป","aₙ = 3(2ⁿ⁻¹)","aₙ = a₁rⁿ⁻¹\n= 3(2ⁿ⁻¹)"],
+ ["ถ้า a₁ = 4 และ r = 3 จงเขียนพจน์ทั่วไป","aₙ = 4(3ⁿ⁻¹)","ใช้สูตร aₙ = a₁rⁿ⁻¹\nแทนค่า a₁ = 4 และ r = 3"],
+ ["ถ้า a₁ = 2 และ r = 2 จงหา a₆","a₆ = 64","a₆ = 2(2⁵) = 64"],
+ ["ถ้า a₃ = 12 และ r = 2 จงหา a₇","a₇ = 192","a₇ = a₃r⁽⁷⁻³⁾\n= 12(2⁴) = 192"],
+ ["ถ้า a₄ = 24 และ a₇ = 192 จงหา r","r = 2","a₇ = a₄r³\n192 = 24r³\nr³ = 8 ดังนั้น r = 2"]
+],
+[
+ ["ลำดับเลขคณิตมีพจน์แรก 4 และ d = 3 จงหาพจน์ที่ 5","a₅ = 16","a₅ = 4 + (5-1)3\n= 4 + 12 = 16"],
+ ["นักเรียนคนหนึ่งออมเงินวันแรก 10 บาท และเพิ่มเงินออมวันละ 5 บาท วันที่ 7 จะออมกี่บาท","40 บาท","a₇ = 10 + (7-1)5\n= 10 + 30 = 40"],
+ ["โรงละครมีที่นั่งแถวแรก 12 ที่นั่ง แถวต่อไปเพิ่มขึ้นแถวละ 3 ที่นั่ง แถวที่ 10 มีกี่ที่นั่ง","39 ที่นั่ง","a₁₀ = 12 + (10-1)3\n= 12 + 27 = 39"],
+ ["แบคทีเรียเพิ่มจำนวนเป็น 2 เท่าทุกชั่วโมง ถ้าเริ่มต้นมี 5 ตัว เมื่อครบ 4 ชั่วโมงจะมีเท่าไร","80 ตัว","a₅ = 5(2⁴) = 80\nนับเวลาเริ่มต้นเป็นพจน์แรก"],
+ ["ลูกบอลเด้งสูงเป็นครึ่งหนึ่งของความสูงครั้งก่อน ถ้าเด้งครั้งแรกสูง 160 ซม. ครั้งที่ 5 สูงเท่าไร","10 ซม.","a₅ = 160(1/2)⁴\n= 160/16 = 10 ซม."]
+]
+];
+
+let used=Array.from({length:5},()=>Array(5).fill(false));
+let current=null,selected=null,eliminated=[],finished=false;
+
+function esc(s){
+ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function renderTeams(){
+ document.getElementById("teams").innerHTML=teams.map((t,i)=>`
+ <div class="team">
+  <input class="team-name" value="${esc(t.name)}" onchange="teams[${i}].name=this.value">
+  <div class="score">${t.score.toLocaleString()}</div>
+  <div class="team-tools">
+   <button class="mini" onclick="changeScore(${i},100)">+100</button>
+   <button class="mini" onclick="changeScore(${i},-100)">-100</button>
+   <button class="mini" onclick="manualScore(${i})">แก้คะแนน</button>
+  </div>
+ </div>`).join("");
+}
+function changeScore(i,n){teams[i].score+=n;renderTeams()}
+function manualScore(i){
+ let n=prompt("ใส่คะแนนใหม่",teams[i].score);
+ if(n!==null&&n.trim()!==""&&!isNaN(n)){teams[i].score=Number(n);renderTeams()}
+}
+function renderBoard(){
+ let html="";
+ categories.forEach(cat=>html+=`<div class="category">${esc(cat)}</div>`);
+ for(let r=0;r<5;r++)for(let c=0;c<5;c++){
+  html+=`<button class="cell ${used[c][r]?'used':''}" ${used[c][r]?'disabled':''}
+   onclick="openQuestion(${c},${r})">${used[c][r]?'✓':scores[r]}</button>`;
+ }
+ document.getElementById("board").innerHTML=html;
+}
+function openQuestion(c,r){
+ current={c,r};selected=null;eliminated=[];finished=false;
+ document.getElementById("modalCategory").textContent=categories[c];
+ document.getElementById("modalPoints").textContent=scores[r]+" POINTS";
+ document.getElementById("questionText").textContent=questions[c][r][0];
+ document.getElementById("answerText").textContent=questions[c][r][1];
+ document.getElementById("solutionText").textContent=questions[c][r][2];
+ document.getElementById("answerBox").classList.remove("show");
+ document.getElementById("wrongPanel").classList.remove("show");
+ document.getElementById("result").classList.remove("show");
+ document.getElementById("playArea").style.display="block";
+ document.getElementById("judgeControls").style.display="none";
+ document.getElementById("endControls").style.display="none";
+ document.getElementById("pickLabel").textContent="เลือกทีมที่กำลังตอบคำถาม";
+ renderPicks();
+ document.getElementById("modal").classList.add("show");
+}
+function renderPicks(){
+ document.getElementById("picks").innerHTML=teams.map((t,i)=>`
+ <button class="pick ${selected===i?'selected':''}"
+ ${eliminated.includes(i)||finished?'disabled':''}
+ onclick="selectTeam(${i})">
+ ${esc(t.name)}
+ <small>${eliminated.includes(i)?'ตอบผิดแล้ว':selected===i?'กำลังตอบ':'เลือกทีมนี้'}</small>
+ </button>`).join("");
+}
+function selectTeam(i){
+ if(finished||eliminated.includes(i))return;
+ selected=i;renderPicks();
+ document.getElementById("pickLabel").textContent=teams[i].name+" กำลังตอบคำถาม";
+ document.getElementById("judgeControls").style.display="flex";
+ document.getElementById("endControls").style.display="none";
+}
+function markWrong(){
+ if(selected===null)return;
+ eliminated.push(selected);selected=null;
+ document.getElementById("judgeControls").style.display="none";
+ document.getElementById("wrongPanel").classList.add("show");
+ document.getElementById("pickLabel").textContent="ทีมที่เหลือสามารถเลือกตอบได้";
+ renderPicks();
+ document.getElementById("endControls").style.display="flex";
+ if(eliminated.length===3)reveal();
+}
+function markCorrect(){
+ if(selected===null)return;
+ let winner=selected;
+ teams[winner].score+=scores[current.r];
+ used[current.c][current.r]=true;
+ renderTeams();renderBoard();
+ document.getElementById("answerBox").classList.add("show");
+ finishQuestion(teams[winner].name+" ตอบถูก! ได้รับ "+scores[current.r]+" คะแนน");
+}
+function reveal(){
+ document.getElementById("answerBox").classList.add("show");
+}
+function endQuestion(){
+ used[current.c][current.r]=true;
+ renderBoard();
+ document.getElementById("answerBox").classList.add("show");
+ finishQuestion("ไม่มีทีมตอบถูกในข้อนี้");
+}
+function finishQuestion(message){
+ finished=true;
+ document.getElementById("playArea").style.display="none";
+ document.getElementById("resultText").textContent=message;
+ document.getElementById("result").classList.add("show");
+}
+function closeModal(){
+ document.getElementById("modal").classList.remove("show");
+ checkWinner();
+}
+function checkWinner(){
+ if(used.every(row=>row.every(Boolean))){
+  let max=Math.max(...teams.map(t=>t.score));
+  let winners=teams.filter(t=>t.score===max);
+  document.getElementById("winnerName").textContent=
+   winners.map(t=>t.name).join(" / ")+" · "+max+" POINTS";
+  document.getElementById("winner").classList.add("show");
+ }
+}
+function resetGame(){
+ if(!confirm("ต้องการรีเซ็ตสถานะช่องคำถามทั้งหมดหรือไม่?"))return;
+ used=Array.from({length:5},()=>Array(5).fill(false));
+ document.getElementById("winner").classList.remove("show");
+ renderBoard();
+}
+function renderEditors(){
+ let html="";
+ categories.forEach((cat,c)=>{
+  html+=`<details><summary>${esc(cat)}</summary>
+   <input value="${esc(cat)}" onchange="categories[${c}]=this.value;renderBoard();renderEditors()" placeholder="ชื่อหมวด">`;
+  for(let r=0;r<5;r++){
+   html+=`<div class="editgrid">
+    <div><label style="font-size:10px;color:#aaa">โจทย์ ${scores[r]} คะแนน</label>
+     <textarea onchange="questions[${c}][${r}][0]=this.value">${esc(questions[c][r][0])}</textarea></div>
+    <div><label style="font-size:10px;color:#aaa">คำตอบและวิธีคิด</label>
+     <textarea onchange="questions[${c}][${r}][1]=this.value">${esc(questions[c][r][1])}</textarea>
+     <textarea onchange="questions[${c}][${r}][2]=this.value">${esc(questions[c][r][2])}</textarea></div>
+   </div>`;
+  }
+  html+="</details>";
+ });
+ document.getElementById("editors").innerHTML=html;
+}
+renderTeams();renderBoard();renderEditors();
+</script>
+</body>
+</html>
